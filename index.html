@@ -505,6 +505,7 @@
   }
 
   function sum(arr, fn){ return arr.reduce((a,r)=>a+fn(r), 0); }
+  function daysInMonth(y, m){ return new Date(Date.UTC(y, m+1, 0)).getUTCDate(); }
 
   function aggregate(records){
     const sellout = sum(records, r=>r.sellout);
@@ -512,6 +513,9 @@
     const sessions = sum(records, r=>r.sessions);
     const adSpend = sum(records, r=>r.adSpend);
     const adSales = sum(records, r=>r.adSales);
+    // Fracción de mes cubierta por cada día del rango, respecto a la duración REAL de su propio mes
+    // (28/29/30/31 días) — así un mes completo siempre suma exactamente 1, sin asumir meses de 30 días.
+    const monthFraction = sum(records, r=>1/daysInMonth(r.date.getUTCFullYear(), r.date.getUTCMonth()));
     const fam = {};
     FAMILIES.forEach(f=>{
       fam[f.key] = {
@@ -524,15 +528,15 @@
     });
     const adsClicks = FAMILIES.reduce((a,f)=>a+fam[f.key].clicks, 0);
     const adsOrders = FAMILIES.reduce((a,f)=>a+fam[f.key].orders, 0);
-    return { sellout, units, sessions, adSpend, adSales, adsClicks, adsOrders, fam, days: records.length };
+    return { sellout, units, sessions, adSpend, adSales, adsClicks, adsOrders, fam, days: records.length, monthFraction };
   }
 
   // ---------- Rendering ----------
   function marginWaterfall(agg){
     const cogsCost = agg.sellout * 0.33; // coste de producto: 33% del PVP (Sell Out)
-    const logistics = (99/30)*agg.days + agg.units*0.09;
+    const logistics = 99*agg.monthFraction + agg.units*0.09;
     const bruta = agg.sellout - cogsCost - logistics;
-    const fijos = (400/30)*agg.days;
+    const fijos = 400*agg.monthFraction;
     const neta = bruta - fijos - agg.adSpend;
     return { cogsCost, logistics, bruta, fijos, neta };
   }
