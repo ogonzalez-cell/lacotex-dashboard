@@ -323,7 +323,7 @@
     <div class="ledger-row"><span class="op">－</span><span class="label">Costes fijos <small class="mono">(400 €/mes)</small></span><span class="val" id="l-fijos">—</span></div>
     <div class="ledger-row"><span class="op">－</span><span class="label">Gasto en Ads</span><span class="val" id="l-ads">—</span></div>
     <div class="ledger-row result">
-      <div class="label-block"><span class="t">Rentabilidad neta</span><span class="d" id="l-neta-sub">Lo que le queda a Lacotex en el periodo</span></div>
+      <div class="label-block"><span class="t">Rentabilidad neta</span><span class="d" id="l-neta-sub">Lo que le queda a Lacotex en el periodo</span><span class="d" id="l-neta-cmp"></span></div>
       <div class="figure"><span class="num" id="l-neta">—</span><span class="pill" id="l-pill">—</span></div>
     </div>
   </div>
@@ -614,6 +614,22 @@
     if (w.neta < 0){ netaEl.style.color='var(--critical)'; pill.className='pill critical'; pill.textContent='Margen negativo'; }
     else if (marginPct < 0.08){ netaEl.style.color='var(--warn)'; pill.className='pill warn'; pill.textContent='Margen ajustado'; }
     else { netaEl.style.color='var(--good)'; pill.className='pill good'; pill.textContent='Margen saludable'; }
+
+    // Comparativa con el mismo periodo del año anterior (mismos supuestos de coste en ambos periodos)
+    const cmp = document.getElementById('l-neta-cmp');
+    if (!prev || !prev.days){
+      cmp.innerHTML = '<span class="k-delta flat">Sin datos del año anterior para comparar</span>';
+    } else if (prev.days < cur.days){
+      cmp.innerHTML = `<span class="k-delta flat">Comparativa no fiable: el año anterior solo tiene datos de ${prev.days} de ${cur.days} días (el histórico empieza el 01/01/2025)</span>`;
+    } else {
+      const wp = marginWaterfall(prev);
+      const diff = w.neta - wp.neta;
+      const cls = Math.abs(diff) < 1 ? 'flat' : (diff > 0 ? 'up' : 'down');
+      const arrow = diff > 0.5 ? '↑' : diff < -0.5 ? '↓' : '=';
+      const sign = diff < 0 ? '−' : (diff > 0 ? '+' : '');
+      const pct = wp.neta > 0 ? ' (' + (diff>=0?'+':'−') + fmtPct(Math.abs(diff)/wp.neta) + ')' : '';
+      cmp.innerHTML = `<span class="k-delta ${cls}">${arrow} ${sign}${fmtEUR(Math.abs(diff))}${pct} vs. año anterior</span> · año anterior: <b>${wp.neta<0?'−':''}${fmtEUR(Math.abs(wp.neta))}</b>`;
+    }
   }
 
   function renderDonut(svgId, legendId, agg, valueKey){
