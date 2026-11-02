@@ -404,6 +404,10 @@
       </table>
     </div>
   </div>
+  <p class="foot-note" id="portfolio-note" hidden style="margin-top:8px">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+    <span>El periodo incluye fechas anteriores al 01/07/2026: el total de Ads es real, pero su reparto entre Hombre, Mujer y Niños en esos días es una <b style="color:var(--ink)">estimación</b> (no hay datos por campaña antes de esa fecha).</span>
+  </p>
 
   <p class="foot-note">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
@@ -817,6 +821,7 @@
     renderDonut('donut-sales', 'legend-sales', cur, 'sales');
     renderBarChart(curRecords, prevRecords);
     renderPortfolio(cur);
+    document.getElementById('portfolio-note').hidden = !(dateKey(from) < '2026-07-01');
     currentProductRows = computeProductRows(from, to);
     productPage = 1;
     renderProducts();
